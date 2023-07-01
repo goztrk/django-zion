@@ -1,0 +1,18 @@
+# Environment variables
+.env
+
+# Python
+__pycache__
+*.pyc
+venv
+
+# SQLite3
+db.sqlite3
+
+# NodeJS
+node_modules
+
+# Boilerplate
+# These shold be removed in actual site
+static/admin/*
+static/django_extensions/*
