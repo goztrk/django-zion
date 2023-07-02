@@ -7,5 +7,6 @@ from zion.conf import settings
 
 def context_renderer(request, context={}):
     context["site_name"] = settings.ZION_SITE_NAME
+    context["DEBUG"] = settings.DEBUG
     context["server"] = {"hostname": gethostname()}
     return context
