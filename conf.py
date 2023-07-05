@@ -10,5 +10,7 @@ class ZionAppConf(AppConf):
     SITE_NAME = "Zion"
     DEFAULT_HTTP_PROTOCOL = "http"
 
+    CHOICE_NAME_OVERRIDES = {}
+
     class Meta:
         prefix = "zion"
