@@ -11,12 +11,12 @@ register = template.Library()
 
 
 @register.simple_tag
+@mark_safe
 def print_js_urls():
     if not settings.ZION_JS_URLS_ENABLED:
         return ""
 
     js_obj = settings.ZION_JS_URLS_JS_OBJECT_NAME
     urls = get_urls_as_json()
-    html = f"<script>{js_obj} = Object.assign({js_obj} or {'{}'}, {urls});</script>"
-    html = mark_safe(html)
+    html = f"<script>{js_obj} = Object.assign({js_obj} || {'{}'}, {urls});</script>"
     return html
