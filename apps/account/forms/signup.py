@@ -9,9 +9,9 @@ from zion.apps.account.forms.constants import (
     USER_FIELD_MAX_LENGTH,
     User,
 )
-from zion.apps.account.forms.fields import PasswordField
 from zion.apps.account.models import EmailAddress
 from zion.apps.account.utils import get_user_lookup_kwargs
+from zion.forms.fields import PasswordField
 
 
 class SignupForm(forms.Form):
