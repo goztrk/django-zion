@@ -11,12 +11,12 @@ class SettingsForm(forms.Form):
     email = forms.EmailField(label=_("Email"), required=True)
     timezone = forms.ChoiceField(
         label=_("Timezone"),
-        choices=[("", "---------")] + settings.ZION_ACCOUNT_TIMEZONES,
+        choices=[("", "---------")] + settings.ZION_TIMEZONES,
         required=False,
     )
     if settings.USE_I18N:
         language = forms.ChoiceField(
-            label=_("Language"), choices=settings.ZION_ACCOUNT_LANGUAGES, required=False
+            label=_("Language"), choices=settings.ZION_LANGUAGES, required=False
         )
 
     def clean_email(self):

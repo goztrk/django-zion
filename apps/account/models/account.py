@@ -6,7 +6,7 @@ from django.dispatch import receiver
 # ZION Shared Library Imports
 from zion.apps.account.conf import settings
 from zion.apps.account.models.email import EmailAddress
-from zion.apps.account.models.fields import TimeZoneField
+from zion.models.fields import TimeZoneField
 
 
 class Account(models.Model):
@@ -39,7 +39,7 @@ class Account(models.Model):
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def user_post_save(sender, **kwargs):
-    # Disable post_save during `manage.py loaddata``
+    # Disable post_save during `manage.py loaddata`
     if kwargs.get("raw", False):
         return False
 

@@ -16,7 +16,26 @@ from django.utils import timezone
 from zion.apps.account import signals
 from zion.apps.account.conf import settings
 from zion.apps.account.hooks import hooks
-from zion.apps.account.managers import EmailAddressManager
+
+
+class EmailAddressManager(models.Manager):
+    def add_email(self, user, email, **kwargs):
+        confirm = kwargs.pop("confirm", False)
+        email_address = self.create(user=user, email=email, **kwargs)
+        if confirm and not email_address.verified:
+            email_address.send_confirmation()
+        return email_address
+
+    def get_primary(self, user):
+        try:
+            return self.get(user=user, primary=True)
+        except self.model.DoesNotExist:
+            return None
+
+    def get_users_for(self, email):
+        # this is a list rather than a generator because we probably want to
+        # do a len() on it right away
+        return [address.user for address in self.filter(verified=True, email=email)]
 
 
 class EmailAddress(models.Model):
@@ -77,11 +96,20 @@ class EmailAddress(models.Model):
             )
 
 
+class EmailConfirmationManager(models.Manager):
+    def delete_expired_confirmations(self):
+        for confirmation in self.all():
+            if confirmation.key_expired():
+                confirmation.delete()
+
+
 class EmailConfirmation(models.Model):
     email_address = models.ForeignKey(EmailAddress, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     sent_at = models.DateTimeField(null=True)
     key = models.CharField(max_length=64, unique=True)
+
+    objects = EmailConfirmationManager()
 
     class Meta:
         app_label = "account"
@@ -103,23 +131,22 @@ class EmailConfirmation(models.Model):
         return expiration_date <= timezone.now()
 
     def confirm(self):
-        if not self.key_expired and not self.email_address.verified:
-            email_address = self.email_address
-            email_address.verified = True
-            email_address.set_as_primary(conditional=True)
-            email_address.save()
-            signals.email_confirmed.send(
-                sender=self.__class__, email_address=email_address
-            )
-            return email_address
+        if self.key_expired or self.email_address.verified:
+            return
+
+        email_address = self.email_address
+        email_address.verified = True
+        email_address.set_as_primary(conditional=True)
+        email_address.save()
+        signals.email_confirmed.send(sender=self.__class__, email_address=email_address)
+        return email_address
 
     def send(self, **kwargs):
         current_site = (
             kwargs["site"] if "site" in kwargs else Site.objects.get_current()
         )
-        protocol = settings.ZION_DEFAULT_HTTP_PROTOCOL
         activate_url = "{0}://{1}{2}".format(
-            protocol,
+            settings.ZION_DEFAULT_HTTP_PROTOCOL,
             current_site.domain,
             reverse(settings.ZION_ACCOUNT_EMAIL_CONFIRMATION_URL, args=[self.key]),
         )

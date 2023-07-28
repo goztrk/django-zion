@@ -9,8 +9,8 @@ from django.utils.translation import gettext_lazy as _
 # ZION Shared Library Imports
 from zion.apps.account.conf import settings
 from zion.apps.account.forms.constants import USER_FIELD_MAX_LENGTH
-from zion.apps.account.forms.fields import PasswordField
 from zion.apps.account.hooks import hooks
+from zion.forms.fields import PasswordField
 
 
 class LoginForm(forms.Form):

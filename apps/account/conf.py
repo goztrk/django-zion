@@ -4,10 +4,6 @@ from appconf import AppConf
 # Django Imports
 from django.conf import settings  # noqa
 
-# ZION Shared Library Imports
-from zion.constants.languages import LANGUAGES
-from zion.constants.timezones import TIMEZONES
-
 
 class AccountAppConf(AppConf):
     OPEN_SIGNUP = True
@@ -45,8 +41,6 @@ class AccountAppConf(AppConf):
     DELETION_EXPUNGE_HOURS = 48
 
     HOOKS = "zion.apps.account.hooks.AccountDefaultHooks"
-    TIMEZONES = TIMEZONES
-    LANGUAGES = LANGUAGES
 
     class Meta:
         prefix = "zion_account"

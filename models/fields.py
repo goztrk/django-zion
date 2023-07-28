@@ -2,7 +2,7 @@
 from django.db import models
 
 # ZION Shared Library Imports
-from zion.apps.account.conf import settings
+from zion.conf import settings
 
 
 class TimeZoneField(models.CharField):
@@ -10,7 +10,7 @@ class TimeZoneField(models.CharField):
         defaults = {
             "max_length": 100,
             "default": "",
-            "choices": settings.ZION_ACCOUNT_TIMEZONES,
+            "choices": settings.ZION_TIMEZONES,
             "blank": True,
         }
         defaults.update(kwargs)
