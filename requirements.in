@@ -2,3 +2,4 @@ django==4.2.7
 django-appconf
 django-extensions
 pydantic
+result
