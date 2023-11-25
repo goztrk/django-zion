@@ -1,5 +1,6 @@
 # Third Party (PyPI) Imports
 from result import (
+    Err,
     Ok,
     Result,
 )
@@ -10,7 +11,10 @@ from django.utils.translation import gettext_lazy as _
 
 # ZION Shared Library Imports
 from zion.apps.accounts.conf import settings
-from zion.models.mixins import CreateModifyMixin
+from zion.models.mixins import (
+    CreateModifyMixin,
+    TokenMixin,
+)
 
 
 class EmailManager(models.Manager):
@@ -27,7 +31,9 @@ class EmailAddress(CreateModifyMixin, models.Model):
         on_delete=models.CASCADE,
     )
     email = models.EmailField(
-        max_length=254, unique=True, verbose_name=_("Email Address")
+        max_length=254,
+        unique=settings.ZION_ACCOUNTS_EMAIL_UNIQUE,
+        verbose_name=_("Email Address"),
     )
     is_primary = models.BooleanField(
         default=False, verbose_name=_("Primary Email Address")
@@ -40,15 +46,17 @@ class EmailAddress(CreateModifyMixin, models.Model):
         verbose_name = _("Email")
         verbose_name_plural = _("Emails")
         ordering = ["-is_primary", "-is_verified", "-created"]
+        if settings.ZION_ACCOUNTS_EMAIL_UNIQUE:
+            unique_together = ["user", "email"]
 
     def __str__(self):
         return self.email
 
-    def set_as_primary(self, conditional=False) -> Result[bool, None]:
+    def set_as_primary(self, stop_if_has_primary=False) -> Result[bool, None]:
         """Set this email address as the primary email address."""
         old_primary = EmailAddress.objects.get_primary(user=self.user)
         if old_primary:
-            if conditional:
+            if stop_if_has_primary:
                 return Ok(False)
             old_primary.is_primary = False
             old_primary.save()
@@ -58,18 +66,49 @@ class EmailAddress(CreateModifyMixin, models.Model):
         self.user.email = self.email
         self.user.save()
 
-        return Ok(True)
+        return Ok()
+
+    def send_confirmation(self, request, **kwargs) -> Result["EmailConfirmation", str]:
+        """Send a confirmation email to this email address."""
+        if self.is_verified:
+            return Err(_("Email address already verified."))
+
+        email_confirmation = self.email_confirmations.last()
+        if not email_confirmation:
+            email_confirmation = self.email_confirmations.create()
+
+        # TODO: Add email sending logic
+
+        return Ok(email_confirmation)
+
+    def verify(self, token) -> Result[bool, str]:
+        """Verify the email address with the given token."""
+        if self.is_verified:
+            return Err(_("Email address already verified."))
+
+        email_confirmation = self.email_confirmations.filter(token=token).first()
+
+        if not email_confirmation or email_confirmation.token != token:
+            return Err(_("Invalid token."))
+
+        self.is_verified = True
+        self.set_as_primary(stop_if_has_primary=True)
+
+        return Ok()
 
 
-class EmailConfirmation(CreateModifyMixin, models.Model):
+class EmailConfirmation(CreateModifyMixin, TokenMixin, models.Model):
     """Email confirmation model.
     In progress
     """
 
     email_address = models.ForeignKey(
-        EmailAddress, on_delete=models.CASCADE, verbose_name=_("Email Address")
+        EmailAddress,
+        on_delete=models.CASCADE,
+        related_name="email_confirmations",
+        verbose_name=_("Email Address"),
     )
-    token = models.CharField(max_length=64, unique=True, verbose_name=_("Token"))
+    is_sent = models.BooleanField(default=False, verbose_name=_("Sent"))
 
     class Meta:
         verbose_name = _("Email Confirmation")
