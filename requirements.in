@@ -3,3 +3,4 @@ django-appconf
 django-extensions
 pydantic
 result
+nanoid
