@@ -33,21 +33,23 @@ class TokenMixin(models.Model):
     class Meta:
         abstract = True
 
-    def __init_subclass__(cls, token_size=32, editable=False, **kwargs) -> None:
-        super().__init_subclass__(kwargs)
-        cls.TOKEN_SIZE = token_size
-        cls.TOKEN_EDITABLE = editable
+    def __init_subclass__(cls, **kwargs) -> None:
+        cls.TOKEN_SIZE = kwargs.pop("token_size", 32)
+        cls.TOKEN_EDITABLE = kwargs.pop("token_editable", False)
+
+        super().__init_subclass__(**kwargs)
+
         cls.token = models.CharField(
             _("Token"),
-            max_length=token_size,
+            max_length=cls.TOKEN_SIZE,
             unique=True,
             default=cls._generate_token,
-            editable=editable,
+            editable=cls.TOKEN_EDITABLE,
         )
 
     @classmethod
     def _generate_token(cls) -> str:
-        return generate(size=cls.SIZE)
+        return generate(size=cls.TOKEN_SIZE)
 
     def generate_token(self) -> None:
         self.token = self._generate_token()
