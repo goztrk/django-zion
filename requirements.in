@@ -1,6 +1,7 @@
 django==4.2.7
 django-appconf
 django-extensions
+django-debug-toolbar
 pydantic
 result
 nanoid
