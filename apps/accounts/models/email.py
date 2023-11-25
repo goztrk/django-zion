@@ -11,10 +11,8 @@ from django.utils.translation import gettext_lazy as _
 
 # ZION Shared Library Imports
 from zion.apps.accounts.conf import settings
-from zion.models.mixins import (
-    CreateModifyMixin,
-    TokenMixin,
-)
+from zion.models.fields import TokenField
+from zion.models.mixins import CreateModifyMixin
 
 
 class EmailManager(models.Manager):
@@ -23,7 +21,7 @@ class EmailManager(models.Manager):
         return self.get(user=user, is_primary=True)
 
 
-class EmailAddress(CreateModifyMixin, models.Model):
+class EmailAddress(CreateModifyMixin):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("User"),
@@ -68,7 +66,7 @@ class EmailAddress(CreateModifyMixin, models.Model):
 
         return Ok()
 
-    def send_confirmation(self, request, **kwargs) -> Result["EmailConfirmation", str]:
+    def send_confirmation(self) -> Result["EmailConfirmation", str]:
         """Send a confirmation email to this email address."""
         if self.is_verified:
             return Err(_("Email address already verified."))
@@ -97,7 +95,7 @@ class EmailAddress(CreateModifyMixin, models.Model):
         return Ok()
 
 
-class EmailConfirmation(CreateModifyMixin, TokenMixin, models.Model):
+class EmailConfirmation(CreateModifyMixin):
     """Email confirmation model.
     In progress
     """
@@ -108,6 +106,7 @@ class EmailConfirmation(CreateModifyMixin, TokenMixin, models.Model):
         related_name="email_confirmations",
         verbose_name=_("Email Address"),
     )
+    token = TokenField()
     is_sent = models.BooleanField(default=False, verbose_name=_("Sent"))
 
     class Meta:
