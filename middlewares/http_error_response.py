@@ -7,6 +7,9 @@ class HttpErrorResponseMiddleware:
     processing of a view, and allows a response to be returned instead.
     """
 
+    def __init__(self, get_response):
+        self.get_response = get_response
+
     def process_exception(self, request, exception):
         if isinstance(exception, HttpResponseError):
             return exception.response
