@@ -5,6 +5,9 @@ from typing import Any
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager as DjangoUserManager
 
+# ZION Shared Library Imports
+from zion.models.mixins import CreateModifyMixin
+
 
 class UserManager(DjangoUserManager):
     def _create_user(self, username, email, password, **extra_fields):
@@ -31,5 +34,5 @@ class UserManager(DjangoUserManager):
         return user
 
 
-class User(AbstractUser):
+class User(AbstractUser, CreateModifyMixin):
     objects = UserManager()
