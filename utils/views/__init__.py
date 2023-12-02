@@ -1,7 +1,7 @@
 # ZION Shared Library Imports
-from zion.utils.views.contexts import context_renderer
+from zion.utils.views.contexts import wrap_context
 
 
 __all__ = [
-    "context_renderer",
+    "wrap_context",
 ]

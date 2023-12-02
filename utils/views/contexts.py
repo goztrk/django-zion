@@ -5,8 +5,16 @@ from socket import gethostname
 from zion.conf import settings
 
 
-def context_renderer(request, context={}):
+__all__ = ["wrap_context"]
+
+
+def wrap_context(request, data={}):
+    context = {}
     context["site_name"] = settings.ZION_SITE_NAME
     context["DEBUG"] = settings.DEBUG
     context["server"] = {"hostname": gethostname()}
+
+    # Allow overriding the values in case it is needed
+    context.update(data)
+
     return context
